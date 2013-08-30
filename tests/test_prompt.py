@@ -30,7 +30,7 @@ else:
 
 
 class TestPrompt(unittest.TestCase):
-    
+
     @patch(input_str, lambda x: 'Audrey Roy')
     def test_prompt_for_config_simple(self):
         context = {"cookiecutter": {"full_name": "Your Name"}}
@@ -44,6 +44,24 @@ class TestPrompt(unittest.TestCase):
     @patch(input_str, lambda x: 'Pizzä ïs Gööd')
     def test_prompt_for_config_unicode(self):
         context = {"cookiecutter": {"full_name": "Your Name"}}
+
+        if not PY3:
+            sys.stdin = StringIO("Pizzä ïs Gööd")
+
+        cookiecutter_dict = prompt.prompt_for_config(context)
+
+        if PY3:
+            self.assertEqual(cookiecutter_dict, {"full_name": "Pizzä ïs Gööd"})
+        else:
+            self.assertEqual(cookiecutter_dict, {"full_name": u"Pizzä ïs Gööd"})
+
+    @patch(input_str, lambda x: 'Pizzä ïs Gööd')
+    def test_prompt_for_config_unicode_defaults(self):
+
+        if PY3:
+            context = {"cookiecutter": {"full_name": "ÞÆæöóý"}}
+        else:
+            context = {"cookiecutter": {"full_name": u"ÞÆæöóý"}}
 
         if not PY3:
             sys.stdin = StringIO("Pizzä ïs Gööd")
